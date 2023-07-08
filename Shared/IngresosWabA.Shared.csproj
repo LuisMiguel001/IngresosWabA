@@ -11,6 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
+    <PackageReference Include="Microsoft.EntityFrameWorkCore.Sqlite" Version="7.0.8" />
   </ItemGroup>
 </Project>
