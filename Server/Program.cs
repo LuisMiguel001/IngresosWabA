@@ -1,8 +1,13 @@
+using IngresosWabA.Server.DAL;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+var ConStr = builder.Configuration.GetConnectionString("ConStr");
+builder.Services.AddDbContextFactory<Context>(options => options.UseSqlite(ConStr));s
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
