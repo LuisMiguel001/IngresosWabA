@@ -1,0 +1,151 @@
+﻿@page "/Ingreso"
+@inject HttpClient httpClient
+
+<EditForm Model="ingresosId" OnValidSubmit="Guardar">
+	<DataAnnotationsValidator />
+
+	<div class="container">
+		<div class="card shadow-lg">
+			<div class="accordion-header">
+				<h3>Registro de ingres</h3>
+			</div>
+			<div class="card-body">
+				@*Buscar*@
+				<div class="col-xs-12 col-sm-12 col-md-8 col-lg-6 col-xl-4">
+					<div class="input-group mb-3">
+						<InputNumber @bind-Value="ingreso.IngresoId" class="form-control" aria-describedby="buscarButton" />
+						<button @onclick="Buscar" class="btn btn-outline-primary" type="button" id="buscarButton" >
+							<i class="oi oi-magnifying-glass"/>
+						</button>
+					</div>
+				</div>
+
+				@*IngresoId*@
+				<div class="mb-3">
+					<label class="form-label">IngresosId</label>
+					<InputNumber @bind-Value="ingreso.IngresoId" class="form-control"></InputNumber>
+					<ValidationMessage For="@(() => ingreso.IngresoId)" />
+				</div>
+
+				@*Fecha*@
+				<div class="mb-3">
+					<label class="form-label">Fecha</label>
+					<InputDate @bind-Value="ingreso.Fecha" class="form-control" />
+					<ValidationMessage For="@(() => ingreso.Fecha)" />
+				</div>
+
+				@*Concepto*@
+				<div class="mb-3">
+					<label class="form-label">IngresosId</label>
+					<InputText @bind-Value="ingreso.Concepto" class="form-control" />
+					<ValidationMessage For="@(() => ingreso.Concepto)"/>
+				</div>
+
+				@*Monto*@
+				<div class="mb-3">
+					<label class="form-label">Monto</label>
+					<InputNumber @bind-Value="ingreso.Monto" class="form-control"> </InputNumber>
+					<ValidationMessage For="@(() => ingreso.Monto)"/>
+				</div>
+
+				@*Detalle*@
+				<div class="accordion-header">
+					<h3>Detalle</h3>
+				</div>
+
+				@*Emisor*@
+				<div class="mb-3">
+					<label class="form-label">Emisor</label>
+					<InputText @bind-Value="detalle.Emisor" class="form-control"></InputText>
+					<ValidationMessage For="@(() => detalle.Emisor)"/>
+				</div>
+
+				@*Mensaje*@
+				<div class="mb-3">
+					<label class="form-label">Mensaje</label>
+					<InputTextArea @bind-Value="detalle.Mensaje" class="form-control"></InputTextArea>
+					<ValidationMessage For="@(() => detalle.Mensaje)"/>
+				</div>
+
+			</div>			
+
+			<div class="card-footer d-flex justify-content-center">
+				<div class="btn-group" role="group">
+					<button type="button" class="btn btn-primary" @onclick="Nuevo"> <i class="oi oi-file"/> Nuevo</button>
+					<button type="submit" class="btn btn-seccess"> <i class="oi oi-document"/> Guardar</button>
+					<button type="button" class="btn btn-danger" @onclick="Eliminar"><i class="io io-trash"/> Eliminar</button>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+</EditForm>
+
+@code {
+	[Parameter]
+	public int ingresosId { get; set; }
+	public Ingresos ingreso { get; set; } = new Ingresos();
+	public IngresosDetalle detalle { get; set; } = new IngresosDetalle();
+	public string? Mensaje { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		if(ingresosId > 0)
+		{
+			this.ingreso.IngresoId = ingresosId;
+			await Buscar();
+		}
+	}
+
+	public async Task Buscar()
+	{
+		var ingresosEncontrado = await httpClient.GetFromJsonAsync<Ingresos>($"api/Ingresos/{ingreso.IngresoId}");
+
+		if(ingresosEncontrado != null)
+		{
+			this.ingreso = ingresosEncontrado;
+			StateHasChanged();
+		}
+
+		else
+		{
+			Mensaje = "No fue encontrado";
+		}
+	}
+
+	public async void Guardar()
+	{
+		using var response = await httpClient.PostAsJsonAsync("api/Ingresos", ingreso);
+		if (!response.IsSuccessStatusCode)
+		{
+			Mensaje = response.ReasonPhrase ?? "Error";
+			return;
+		}
+
+		var ingresoDevuelto = await response.Content.ReadFromJsonAsync<Ingresos>();
+		if (ingresoDevuelto is not null)
+		{
+			ingreso = ingresoDevuelto;
+			StateHasChanged();
+		}
+	}
+
+	public void Nuevo()
+	{
+		this.ingreso = new Ingresos();
+		Mensaje = string.Empty;
+	}
+
+	public async Task Eliminar()
+	{
+		using var response = await httpClient.DeleteAsync($"api/Ingresos/{ingreso.IngresoId}");
+		if (!response.IsSuccessStatusCode)
+		{
+			Mensaje = response.ReasonPhrase ?? "Error";
+			return;
+		}
+		else
+			Nuevo();
+	}
+}
